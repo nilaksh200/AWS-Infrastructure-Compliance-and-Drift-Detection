@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-10-10T09:51:34.739073+00:00",
+  "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+  "summary": {
+    "total": 7,
+    "compliant": 3,
+    "non_compliant": 4,
+    "errors": 0,
+    "is_fully_compliant": false
+  },
+  "results": [
+    {
+      "check_id": "S3_PAB_BLOCK_PUBLIC_ACLS",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "block_public_acls",
+      "expected_value": true,
+      "observed_value": false,
+      "status": "NON_COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739100+00:00",
+      "explanation": "Configuration drift: block_public_acls is False, but expected True."
+    },
+    {
+      "check_id": "S3_PAB_IGNORE_PUBLIC_ACLS",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "ignore_public_acls",
+      "expected_value": true,
+      "observed_value": true,
+      "status": "COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739111+00:00",
+      "explanation": "ignore_public_acls is properly enforced as True."
+    },
+    {
+      "check_id": "S3_PAB_BLOCK_PUBLIC_POLICY",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "block_public_policy",
+      "expected_value": true,
+      "observed_value": true,
+      "status": "COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739119+00:00",
+      "explanation": "block_public_policy is properly enforced as True."
+    },
+    {
+      "check_id": "S3_PAB_RESTRICT_PUBLIC_BUCKETS",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "restrict_public_buckets",
+      "expected_value": true,
+      "observed_value": true,
+      "status": "COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739124+00:00",
+      "explanation": "restrict_public_buckets is properly enforced as True."
+    },
+    {
+      "check_id": "S3_ENCRYPTION_ALGORITHM",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "server_side_encryption_algorithm",
+      "expected_value": "AES256",
+      "observed_value": "aws:kms",
+      "status": "NON_COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739129+00:00",
+      "explanation": "Encryption configuration drift: observed 'aws:kms', expected 'AES256'."
+    },
+    {
+      "check_id": "S3_VERSIONING_STATUS",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "versioning_status",
+      "expected_value": "Enabled",
+      "observed_value": "Suspended",
+      "status": "NON_COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739133+00:00",
+      "explanation": "Versioning drift detected: observed status 'Suspended', expected 'Enabled'."
+    },
+    {
+      "check_id": "S3_REQUIRED_TAGS",
+      "resource_id": "arn:aws:s3:::idps-compliance-dev-640110193463-ap-south-1",
+      "property_name": "required_tags",
+      "expected_value": {
+        "Project": "idps-compliance",
+        "Environment": "dev",
+        "ManagedBy": "Terraform"
+      },
+      "observed_value": {
+        "Project": "idps-compliance",
+        "Environment": "dev"
+      },
+      "status": "NON_COMPLIANT",
+      "error_code": null,
+      "timestamp": "2026-10-10T09:51:34.739139+00:00",
+      "explanation": "Tagging drift detected: missing tags: ManagedBy."
+    }
+  ]
+}

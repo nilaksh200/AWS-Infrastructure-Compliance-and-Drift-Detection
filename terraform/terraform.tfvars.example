@@ -1,0 +1,25 @@
+# ==============================================================================
+# Terraform Variables Example File
+# ==============================================================================
+# Copy this file to 'terraform.tfvars' to customize local configuration values.
+# Do NOT commit 'terraform.tfvars' containing environment secrets to Git.
+# ==============================================================================
+
+# AWS Region to deploy into (default is ap-south-1)
+aws_region = "ap-south-1"
+
+# Project identifier for resource naming and tagging
+project_name = "idps-compliance"
+
+# Target deployment environment (dev, test, staging, prod)
+environment = "dev"
+
+# Optional explicit bucket name override (must be globally unique across AWS)
+# Leave unset or null to allow Terraform to automatically construct a unique name.
+# bucket_name_override = "my-custom-idps-audit-bucket-dev"
+
+# Optional additional tags
+additional_tags = {
+  Course     = "AIDPS"
+  Department = "ComputerScience"
+}

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Policy-Driven Infrastructure Compliance and Drift Detection Dashboard for AWS S3 baselines.">
+  <title>IDPS Infrastructure Compliance Dashboard</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="top-header" role="banner">
+    <div class="header-container">
+      <div class="branding">
+        <div class="logo-badge" aria-hidden="true">🛡️</div>
+        <div>
+          <h1 class="header-title">IDPS Infrastructure Compliance Dashboard</h1>
+          <p class="header-subtitle">Policy-Driven Infrastructure Compliance and Drift Detection using Terraform and AWS</p>
+        </div>
+      </div>
+      <div class="header-meta" role="region" aria-label="System Metadata">
+        <div class="meta-item">
+          <span class="meta-label">Target Resource</span>
+          <span class="meta-value code-font" id="meta-target">Loading...</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">AWS Region</span>
+          <span class="meta-value" id="meta-region">ap-south-1</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Environment</span>
+          <span class="status-pill status-pill-active" id="meta-status">
+            <span class="pulse-dot"></span> Backend API active
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-container" role="main">
+    <!-- Action Controls Bar -->
+    <section class="controls-card" aria-label="Dashboard Actions">
+      <div class="controls-left">
+        <button id="btn-scan-live" class="btn btn-primary" type="button" aria-label="Trigger Live AWS Scan">
+          <span class="btn-icon">⚡</span>
+          <span class="btn-text">Run Live AWS Scan</span>
+          <span id="scan-spinner" class="spinner hidden" aria-hidden="true"></span>
+        </button>
+        <button id="btn-refresh" class="btn btn-secondary" type="button" aria-label="Refresh Dashboard Data">
+          <span class="btn-icon">🔄</span>
+          <span>Refresh View</span>
+        </button>
+      </div>
+      <div class="controls-right">
+        <span class="download-label">Export Reports:</span>
+        <button id="btn-download-live" class="btn btn-outline" type="button" aria-label="Download Live Compliance JSON Report">
+          <span>📥 Live Report (JSON)</span>
+        </button>
+        <button id="btn-download-sim" class="btn btn-outline" type="button" aria-label="Download Simulated Drift JSON Report">
+          <span>📥 Simulated Drift (JSON)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Global Alert / Notification Area -->
+    <div id="alert-container" class="alert-container hidden" role="alert" aria-live="polite">
+      <div id="alert-message" class="alert-message"></div>
+      <button id="btn-alert-dismiss" class="alert-dismiss" aria-label="Dismiss alert">&times;</button>
+    </div>
+
+    <!-- Navigation Tabs for Switching Scenarios -->
+    <nav class="view-tabs" role="tablist" aria-label="Audit Report Views">
+      <button id="tab-live" class="tab-btn active" role="tab" aria-selected="true" aria-controls="view-single">
+        <span class="tab-indicator live-dot"></span>
+        <span class="tab-title">Live AWS Telemetry</span>
+        <span class="tab-badge badge-live">LIVE AWS</span>
+      </button>
+      <button id="tab-sim" class="tab-btn" role="tab" aria-selected="false" aria-controls="view-single">
+        <span class="tab-indicator sim-dot"></span>
+        <span class="tab-title">Simulated Drift Scenario</span>
+        <span class="tab-badge badge-sim">SIMULATION ONLY</span>
+      </button>
+      <button id="tab-compare" class="tab-btn" role="tab" aria-selected="false" aria-controls="view-compare">
+        <span class="tab-indicator compare-dot"></span>
+        <span class="tab-title">Drift Delta Comparison</span>
+        <span class="tab-badge badge-compare">DIFF MATRIX</span>
+      </button>
+    </nav>
+
+    <!-- Context Banner -->
+    <div id="mode-banner" class="mode-banner mode-live" role="note">
+      <div class="banner-icon" id="banner-icon">📡</div>
+      <div class="banner-content">
+        <strong id="banner-title">Live AWS Infrastructure Scan</strong>
+        <p id="banner-desc">Telemetry captured directly from deployed AWS S3 bucket in ap-south-1 using read-only APIs.</p>
+      </div>
+    </div>
+
+    <!-- View 1 & 2: Single Audit Report View (Live or Simulated) -->
+    <section id="view-single" class="view-content active" role="tabpanel" aria-labelledby="tab-live">
+      <!-- KPI Metric Cards Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total Checks</div>
+          <div class="metric-value" id="card-total">7</div>
+          <div class="metric-subtext">Baseline Security Rules</div>
+        </div>
+        <div class="metric-card metric-card-compliant">
+          <div class="metric-label">Compliant Checks</div>
+          <div class="metric-value text-success" id="card-compliant">--</div>
+          <div class="metric-subtext">Policies Enforced</div>
+        </div>
+        <div class="metric-card metric-card-drift">
+          <div class="metric-label">Non-Compliant (Drift)</div>
+          <div class="metric-value text-danger" id="card-non-compliant">--</div>
+          <div class="metric-subtext">Security Violations</div>
+        </div>
+        <div class="metric-card metric-card-errors">
+          <div class="metric-label">Operational Errors</div>
+          <div class="metric-value text-neutral" id="card-errors">0</div>
+          <div class="metric-subtext">API / Permission Issues</div>
+        </div>
+        <div class="metric-card metric-card-posture">
+          <div class="metric-label">Overall Posture</div>
+          <div class="posture-badge" id="card-posture">EVALUATING</div>
+          <div class="metric-subtext" id="card-posture-sub">System Assessment</div>
+        </div>
+      </div>
+
+      <!-- Report Metadata Strip -->
+      <div class="meta-strip">
+        <div><strong>Scan Timestamp:</strong> <span id="report-timestamp" class="code-font">--</span></div>
+        <div><strong>Evaluated Resource:</strong> <span id="report-resource" class="code-font">--</span></div>
+      </div>
+
+      <!-- Policy Evaluation Table -->
+      <div class="table-container">
+        <table class="data-table" id="checks-table" aria-label="Policy Compliance Results">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 24%;">Check ID</th>
+              <th scope="col" style="width: 16%;">Property</th>
+              <th scope="col" style="width: 14%;">Expected</th>
+              <th scope="col" style="width: 14%;">Observed</th>
+              <th scope="col" style="width: 12%;">Status</th>
+              <th scope="col" style="width: 20%;">Rule Explanation</th>
+            </tr>
+          </thead>
+          <tbody id="checks-tbody">
+            <tr>
+              <td colspan="6" class="text-center py-4">Loading audit telemetry...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- View 3: Side-by-Side Comparison Matrix -->
+    <section id="view-compare" class="view-content hidden" role="tabpanel" aria-labelledby="tab-compare">
+      <!-- Comparison Summary Cards -->
+      <div class="metrics-grid compare-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total Policy Rules</div>
+          <div class="metric-value" id="cmp-total">7</div>
+          <div class="metric-subtext">Defined S3 Baselines</div>
+        </div>
+        <div class="metric-card metric-card-compliant">
+          <div class="metric-label">Identical Baselines</div>
+          <div class="metric-value text-success" id="cmp-matching">--</div>
+          <div class="metric-subtext">Unaltered Across Modes</div>
+        </div>
+        <div class="metric-card metric-card-drift">
+          <div class="metric-label">Drift Deviations</div>
+          <div class="metric-value text-danger" id="cmp-drifted">--</div>
+          <div class="metric-subtext">Differences Identified</div>
+        </div>
+      </div>
+
+      <div class="meta-strip compare-meta-strip">
+        <div><strong>Live AWS Scan:</strong> <span id="cmp-live-time" class="code-font">--</span></div>
+        <div><strong>Simulated Drift Scan:</strong> <span id="cmp-sim-time" class="code-font">--</span></div>
+      </div>
+
+      <!-- Side-by-Side Comparison Table -->
+      <div class="table-container">
+        <table class="data-table compare-table" id="compare-table" aria-label="Policy Drift Comparison Matrix">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 22%;">Check ID</th>
+              <th scope="col" style="width: 14%;">Expected Baseline</th>
+              <th scope="col" style="width: 15%;">Live AWS State</th>
+              <th scope="col" style="width: 15%;">Simulated State</th>
+              <th scope="col" style="width: 12%;">Drift Status</th>
+              <th scope="col" style="width: 22%;">Drift Root Cause Analysis</th>
+            </tr>
+          </thead>
+          <tbody id="compare-tbody">
+            <tr>
+              <td colspan="6" class="text-center py-4">Loading comparison matrix...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Application Footer -->
+  <footer class="bottom-footer">
+    <div class="footer-container">
+      <span>Policy-Driven Infrastructure Compliance &amp; Drift Detection &bull; College Capstone Demonstration</span>
+      <span>Host: <code>127.0.0.1:8000</code> (Strict Local Binding) &bull; Read-Only Telemetry</span>
+    </div>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
